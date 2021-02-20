@@ -5,7 +5,6 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import {
   Animated,
-  AsyncStorage,
   Dimensions,
   Image,
   Platform,
@@ -15,6 +14,8 @@ import {
   View,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+
+import AsyncStorage from '@react-native-community/async-storage';
 
 import splitter from './grapheme-splitter';
 import parse from './parse';
@@ -355,7 +356,7 @@ class Emoticons extends React.Component {
 
         return (
             (!this.state.showWV) ?
-                <Animated.View style={[styles.container, { bottom: this.state.position }, this.props.style]}>
+                <Animated.View style={[styles.container, { translateY: this.state.position }, this.props.style]}>
                     <ScrollableTabView
                         tabBarPosition='overlayBottom'
                         renderTabBar={() => <TabBar {...this.props} onPlusPress={this._onPlusPress.bind(this)} />}
@@ -367,9 +368,8 @@ class Emoticons extends React.Component {
                     >
                         {groupsView}
                     </ScrollableTabView>
-
                 </Animated.View> :
-                <Animated.View style={[styles.wvContainer, { bottom: this.state.wvPosition }]}>
+                <Animated.View style={[styles.wvContainer, { translateY: this.state.wvPosition }]}>
                     <WebViewPage onBackPress={this._onCloseWV.bind(this)} />
                 </Animated.View>
         );
