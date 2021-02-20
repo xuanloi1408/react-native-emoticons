@@ -28,6 +28,6 @@
     "react-native-fetch-blob": "^0.10.5",
     "react-native-scrollable-tab-view": "^1.0.0",
     "string.fromcodepoint": "^0.2.1",
-    "@react-native-community/viewpager": "^4.2.3",
+    "@react-native-community/viewpager": "^4.2.3"
   }
 }
