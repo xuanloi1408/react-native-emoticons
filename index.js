@@ -1,32 +1,31 @@
 import React from 'react';
-import {
-    Text,
-    View,
-    TouchableOpacity,
-    Animated,
-    StyleSheet,
-    Dimensions,
-    TouchableWithoutFeedback,
-    Image,
-    ScrollView,
-    TouchableHighlight,
-    AsyncStorage,
-    Platform
-} from 'react-native';
-import styles from './style';
+
 import emojiData from 'emoji-datasource';
 import _ from 'lodash';
-import ScrollableTabView  from 'react-native-scrollable-tab-view';
+import PropTypes from 'prop-types';
+import {
+  Animated,
+  AsyncStorage,
+  Dimensions,
+  Image,
+  Platform,
+  Text,
+  TouchableHighlight,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+
+import splitter from './grapheme-splitter';
+import parse from './parse';
+import stringify from './stringify';
+import styles from './style';
 import TabBar from './tab';
 import TabBarDot from './tabDot';
-import stringify from './stringify';
-import parse from './parse';
-import splitter from './grapheme-splitter';
-import WebViewPage from './webView';
-import PropTypes from 'prop-types';
 import ViewPropTypes from './viewproptypes';
+import WebViewPage from './webView';
 
-const {height, width} = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 require('string.fromcodepoint');
 
 const categories = ['People', 'Nature', 'Foods', 'Activity', 'Places', 'Objects', 'Symbols', 'Flags'];
@@ -74,22 +73,22 @@ class Emoticons extends React.Component {
     };
 
     componentDidMount() {
-        AsyncStorage.getItem(HISTORY_STORAGE, (err, result)=> {
+        AsyncStorage.getItem(HISTORY_STORAGE, (err, result) => {
             if (result) {
-                this.setState({history: JSON.parse(result)});
+                this.setState({ history: JSON.parse(result) });
             }
         });
     }
 
     componentWillMount() {
         if (this.props.showPlusBar) {
-            this.setState({groupIndex: this.state.groupIndex++});
-            this.setState({currentMainTab: ++this.state.currentMainTab});
+            this.setState({ groupIndex: this.state.groupIndex++ });
+            this.setState({ currentMainTab: ++this.state.currentMainTab });
         }
 
         if (this.props.showHistoryBar) {
-            this.setState({groupIndex: this.state.groupIndex++});
-            this.setState({currentMainTab: ++this.state.currentMainTab});
+            this.setState({ groupIndex: this.state.groupIndex++ });
+            this.setState({ currentMainTab: ++this.state.currentMainTab });
         }
         this._classify();
     }
@@ -99,14 +98,16 @@ class Emoticons extends React.Component {
             this.state.position,
             {
                 duration: 300,
-                toValue: this.props.show ? 0 : -300
+                toValue: this.props.show ? 0 : -300,
+                useNativeDriver: true,
             }
         ).start();
         Animated.timing(
             this.state.wvPosition,
             {
                 duration: 300,
-                toValue: this.state.showWV ? 0 : -height
+                toValue: this.state.showWV ? 0 : -height,
+                useNativeDriver: true,
             }
         ).start();
     }
@@ -116,26 +117,26 @@ class Emoticons extends React.Component {
     }
 
     _classify() {
-        let filteredData = emojiData.filter(e=> !_.includes(filters, e.short_name));
+        let filteredData = emojiData.filter(e => !_.includes(filters, e.short_name));
         let sortedData = _.orderBy(filteredData, 'sort_order');
         let groupedData = _.groupBy(sortedData, 'category');
 
         if (this.props.concise) {
-            filteredData = emojiData.filter(e=> _.includes(choiceness, e.short_name));
+            filteredData = emojiData.filter(e => _.includes(choiceness, e.short_name));
             const temp = [];
-            _.mapKeys(filteredData, (value)=> {
+            _.mapKeys(filteredData, (value) => {
                 temp.push({
                     code: this._charFromCode(value.unified),
                     name: value.short_name
                 });
             });
-            _.each(choiceness, (value)=> {
-                const one = temp.filter(e=> _.includes([value], e.name));
+            _.each(choiceness, (value) => {
+                const one = temp.filter(e => _.includes([value], e.name));
                 if (one[0])
                     this.state.data.push(one[0]);
             });
         } else {
-            this.state.data = _.mapValues(groupedData, group => group.map((value)=> {
+            this.state.data = _.mapValues(groupedData, group => group.map((value) => {
                 return {
                     code: this._charFromCode(value.unified),
                     name: value.short_name
@@ -146,16 +147,16 @@ class Emoticons extends React.Component {
     }
 
     _onChangeTabMain(data) {
-        this.setState({currentMainTab: data.i});
+        this.setState({ currentMainTab: data.i });
     }
 
     _onChangeTabDot(data) {
         this.state.currentDotTab[this.state.currentMainTab] = data.i;
-        this.setState({currentDotTab: this.state.currentDotTab});
+        this.setState({ currentDotTab: this.state.currentDotTab });
     }
 
     _onPlusPress() {
-        this.setState({showWV: true});
+        this.setState({ showWV: true });
     }
 
     _onEmoticonPress(val) {
@@ -171,19 +172,19 @@ class Emoticons extends React.Component {
     }
 
     _onCloseWV() {
-        this.setState({showWV: false});
+        this.setState({ showWV: false });
     }
 
     _history(val) {
         //AsyncStorage.removeItem(HISTORY_STORAGE);
-        AsyncStorage.getItem(HISTORY_STORAGE, (err, result)=> {
+        AsyncStorage.getItem(HISTORY_STORAGE, (err, result) => {
             let value = _.clone(val);
             if (result) {
                 result = JSON.parse(result);
                 valIndex = _.find(result, value);
                 if (valIndex) {
                     valIndex.freq++;
-                    _.remove(result, {name: valIndex.name});
+                    _.remove(result, { name: valIndex.name });
                     result.push(valIndex);
                 } else {
                     value.freq = 1;
@@ -194,7 +195,7 @@ class Emoticons extends React.Component {
                 return o.freq;
             }]));
             AsyncStorage.setItem(HISTORY_STORAGE, JSON.stringify(result));
-            this.setState({history: result});
+            this.setState({ history: result });
         });
     }
 
@@ -216,8 +217,8 @@ class Emoticons extends React.Component {
             for (let i = 0; i < blocks; i++) {
                 let ge = _.slice(emoji, i * blockIconNum, (i + 1) * blockIconNum);
                 groupView.push(
-                    <View style={styles.groupView} key={emoji[0]['name']+'block'+i}
-                          tabLabel={emoji[0]['name']+'block'+i}>
+                    <View style={styles.groupView} key={emoji[0]['name'] + 'block' + i}
+                        tabLabel={emoji[0]['name'] + 'block' + i}>
                         {
                             ge.map((value, key) => {
                                 if ((this.props.asyncRender && this.state.currentDotTab[this.state.currentMainTab] == i)
@@ -225,13 +226,13 @@ class Emoticons extends React.Component {
                                     return (
                                         <TouchableHighlight
                                             underlayColor={'#f1f1f1'}
-                                            onPress={()=>this._onEmoticonPress(value)}
+                                            onPress={() => this._onEmoticonPress(value)}
                                             style={styles.emojiTouch}
-                                            key={Math.random()+value.name}
-                                            >
+                                            key={Math.random() + value.name}
+                                        >
                                             <Text
                                                 style={styles.emoji}
-                                                >
+                                            >
                                                 {value.code}
                                             </Text>
                                         </TouchableHighlight>
@@ -242,15 +243,15 @@ class Emoticons extends React.Component {
                         }
                         {
                             (this.props.asyncRender && this.state.currentDotTab[this.state.currentMainTab] == i)
-                            || !this.props.asyncRender ? (<TouchableOpacity
-                                onPress={()=>this._onBackspacePress()}
-                                style={[styles.emojiTouch, styles.delete]}
+                                || !this.props.asyncRender ? (<TouchableOpacity
+                                    onPress={() => this._onBackspacePress()}
+                                    style={[styles.emojiTouch, styles.delete]}
                                 >
-                                <Image
-                                    resizeMode={'contain'}
-                                    style={styles.backspace}
-                                    source={require('./backspace.png')}/>
-                            </TouchableOpacity>) : null
+                                    <Image
+                                        resizeMode={'contain'}
+                                        style={styles.backspace}
+                                        source={require('./backspace.png')} />
+                                </TouchableOpacity>) : null
                         }
 
 
@@ -266,14 +267,14 @@ class Emoticons extends React.Component {
             tabLabel={'plus'}
             style={styles.cateView}
             key={'0_plus'}
-            />;
+        />;
 
         const histroyView = group(the.state.history);
         const history = <View
             tabLabel={'history'}
             style={styles.cateView}
             key={'0_history'}
-            >
+        >
             <ScrollableTabView
                 tabBarPosition='bottom'
                 renderTabBar={() => <TabBarDot {...the.props} />}
@@ -281,8 +282,8 @@ class Emoticons extends React.Component {
                 initialPage={0}
                 tabBarActiveTextColor="#fc7d30"
                 style={styles.scrollGroupTable}
-                tabBarUnderlineStyle={{backgroundColor:'#fc7d30',height: 2}}
-                >
+                tabBarUnderlineStyle={{ backgroundColor: '#fc7d30', height: 2 }}
+            >
                 {
                     histroyView
                 }
@@ -304,7 +305,7 @@ class Emoticons extends React.Component {
                     tabLabel={the.state.data[0]['code']}
                     style={styles.cateView}
                     key={the.state.data[0]['name']}
-                    >
+                >
                     <ScrollableTabView
                         tabBarPosition='bottom'
                         renderTabBar={() => <TabBarDot {...the.props} />}
@@ -312,8 +313,8 @@ class Emoticons extends React.Component {
                         initialPage={0}
                         tabBarActiveTextColor="#fc7d30"
                         style={styles.scrollGroupTable}
-                        tabBarUnderlineStyle={{backgroundColor:'#fc7d30',height: 2}}
-                        >
+                        tabBarUnderlineStyle={{ backgroundColor: '#fc7d30', height: 2 }}
+                    >
                         {
                             groupView
                         }
@@ -322,7 +323,7 @@ class Emoticons extends React.Component {
                 </View>
             );
         } else {
-            _.each(categories, (value, key)=> {
+            _.each(categories, (value, key) => {
                 const groupView = group(the.state.data[value]);
                 if (groupView.length >= 0) {
                     groupsView.push(
@@ -330,16 +331,16 @@ class Emoticons extends React.Component {
                             tabLabel={the.state.data[value][0]['code']}
                             style={styles.cateView}
                             key={value}
-                            >
+                        >
                             <ScrollableTabView
                                 tabBarPosition='bottom'
-                                renderTabBar={() => <TabBarDot {...the.props}/>}
+                                renderTabBar={() => <TabBarDot {...the.props} />}
                                 onChangeTab={this._onChangeTabDot.bind(this)}
                                 initialPage={0}
                                 tabBarActiveTextColor="#fc7d30"
                                 style={styles.scrollGroupTable}
-                                tabBarUnderlineStyle={{backgroundColor:'#fc7d30',height: 2}}
-                                >
+                                tabBarUnderlineStyle={{ backgroundColor: '#fc7d30', height: 2 }}
+                            >
                                 {
                                     groupView
                                 }
@@ -354,22 +355,22 @@ class Emoticons extends React.Component {
 
         return (
             (!this.state.showWV) ?
-                <Animated.View style={[styles.container, {bottom: this.state.position}, this.props.style]}>
+                <Animated.View style={[styles.container, { bottom: this.state.position }, this.props.style]}>
                     <ScrollableTabView
                         tabBarPosition='overlayBottom'
-                        renderTabBar={() => <TabBar {...this.props} onPlusPress={this._onPlusPress.bind(this)}/>}
+                        renderTabBar={() => <TabBar {...this.props} onPlusPress={this._onPlusPress.bind(this)} />}
                         initialPage={this.state.groupIndex}
                         onChangeTab={this._onChangeTabMain.bind(this)}
                         tabBarActiveTextColor="#fc7d30"
                         style={styles.scrollTable}
-                        tabBarUnderlineStyle={{backgroundColor:'#fc7d30',height: 2}}
-                        >
+                        tabBarUnderlineStyle={{ backgroundColor: '#fc7d30', height: 2 }}
+                    >
                         {groupsView}
                     </ScrollableTabView>
 
                 </Animated.View> :
-                <Animated.View style={[styles.wvContainer,{bottom: this.state.wvPosition}]}>
-                    <WebViewPage onBackPress={this._onCloseWV.bind(this)}/>
+                <Animated.View style={[styles.wvContainer, { bottom: this.state.wvPosition }]}>
+                    <WebViewPage onBackPress={this._onCloseWV.bind(this)} />
                 </Animated.View>
         );
     }
@@ -388,8 +389,4 @@ Emoticons.propTypes = {
 
 
 export default Emoticons;
-export {
-    stringify as stringify,
-    parse as parse,
-    splitter as splitter
-}
+export { parse, splitter, stringify };
