@@ -100,7 +100,7 @@ class Emoticons extends React.Component {
             {
                 duration: 300,
                 toValue: this.props.show ? 0 : -300,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }
         ).start();
         Animated.timing(
@@ -108,7 +108,7 @@ class Emoticons extends React.Component {
             {
                 duration: 300,
                 toValue: this.state.showWV ? 0 : -height,
-                useNativeDriver: true,
+                useNativeDriver: false,
             }
         ).start();
     }
@@ -356,7 +356,7 @@ class Emoticons extends React.Component {
 
         return (
             (!this.state.showWV) ?
-                <Animated.View style={[styles.container, { translateY: this.state.position }, this.props.style]}>
+                <Animated.View style={[styles.container, { bottom: this.state.position }, this.props.style]}>
                     <ScrollableTabView
                         tabBarPosition='overlayBottom'
                         renderTabBar={() => <TabBar {...this.props} onPlusPress={this._onPlusPress.bind(this)} />}
@@ -369,7 +369,7 @@ class Emoticons extends React.Component {
                         {groupsView}
                     </ScrollableTabView>
                 </Animated.View> :
-                <Animated.View style={[styles.wvContainer, { translateY: this.state.wvPosition }]}>
+                <Animated.View style={[styles.wvContainer, { bottom: this.state.wvPosition }]}>
                     <WebViewPage onBackPress={this._onCloseWV.bind(this)} />
                 </Animated.View>
         );
